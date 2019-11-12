@@ -1,0 +1,2 @@
+# pnqueens
+parallel nqueens
