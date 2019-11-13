@@ -5,7 +5,7 @@ CROSS_TOOL =
 CC_CPP = $(CROSS_TOOL)g++
 CC_C = $(CROSS_TOOL)gcc
 
-CFLAGS = -Wall -lpthread
+CFLAGS = -Wall -pthread
 
 all: clean $(TARGETS)
 
