@@ -12,7 +12,10 @@ all: clean $(TARGETS)
 test: test.c threadpool.c
 	$(CC_C) $(CFLAGS) $@.c threadpool.c -o $@
 
-run_test: test
+run_local: test
+	./test $(N) $(P)
+
+run_production: test
 	qsub -v n=$(N),p=$(P) run.sh
 
 clean:

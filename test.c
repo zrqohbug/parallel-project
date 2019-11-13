@@ -106,10 +106,10 @@ void *firstLine(void *varg) {
 
 
 int main(int argc, char **argv) {
-    struct timespec start, end;
+    struct timespec start, end_init, end_compute, end_finish;
     int i, j;
     int newn, on;
-    double time;
+    double time_total, time_init, time_compute, time_finish;
     if(argc != 3) {
         printf("Usage: nqueens problem n p\nAborting...\n");
         exit(0);
@@ -133,11 +133,13 @@ int main(int argc, char **argv) {
     free(threads);
     */
     
+    clock_gettime(CLOCK_MONOTONIC, &start);    
     if (tpool_create(p) != 0) {
         printf("tpool_create failed\n");
         exit(1);
     }
-    clock_gettime(CLOCK_MONOTONIC, &start);    
+
+    clock_gettime(CLOCK_MONOTONIC, &end_init);    
     for (i = 0; i < halfn; ++i) {
         GM *arg = (GM*)malloc(sizeof(*arg));
         arg->pid = i;               // thread pid
@@ -158,11 +160,25 @@ int main(int argc, char **argv) {
         if(i == halfn)
             break;
     }
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    clock_gettime(CLOCK_MONOTONIC, &end_compute);
+    
     tpool_destroy();
-    time = BILLION *(end.tv_sec - start.tv_sec) +(end.tv_nsec - start.tv_nsec);
-    time = time / BILLION;
-    printf("Elapsed time: %lf seconds (n = %d, p = %d)\n", time, n, p);
+    clock_gettime(CLOCK_MONOTONIC, &end_finish);
+    
+    time_total   = BILLION * (end_finish.tv_sec - start.tv_sec) + (end_finish.tv_nsec - start.tv_nsec);
+    time_init    = BILLION * (end_init.tv_sec - start.tv_sec) + (end_init.tv_nsec - start.tv_nsec);
+    time_compute = BILLION * (end_compute.tv_sec - end_init.tv_sec) + (end_compute.tv_nsec - end_init.tv_nsec);
+    time_finish  = BILLION * (end_finish.tv_sec - end_compute.tv_sec) + (end_finish.tv_nsec - end_compute.tv_nsec);
+    time_total   = time_total   / BILLION;
+    time_init    = time_init    / BILLION;
+    time_compute = time_compute / BILLION;
+    time_finish  = time_finish  / BILLION;
+
+    printf("n = %d, p = %d, total: %lf seconds\n",   n, p, time_total);
+    printf("n = %d, p = %d, init: %lf seconds\n",    n, p, time_init);
+    printf("n = %d, p = %d, compute: %lf seconds\n", n, p, time_compute);
+    printf("n = %d, p = %d, finish: %lf seconds\n",  n, p, time_finish);
+
     int sum = 0;
     int maxS = 0;
     int PRINT[MAX];
@@ -194,8 +210,8 @@ int main(int argc, char **argv) {
             printf("\n");
         }   
     }
-    printf("available result number is %d\n", sum);
-    printf("max result number is %d\n", maxS);
+    printf("solutions: %d\n", sum);
+    printf("profit: %d\n", maxS);
     printf("\n");
     return 0;
 }
